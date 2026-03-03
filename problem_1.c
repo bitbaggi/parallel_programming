@@ -9,22 +9,20 @@
 #include <string.h>
 #include <omp.h>
 
-#define NUMBER_OF_RUNS 1
+#define NUMBER_OF_RUNS 2
 #define RANDOM_SEED 1234ULL
 
-/**
- * Comparator for the qsort function, just for check if the radix sort works correctly
- * @param a
- * @param b
- * @return
- */
-int compare(const void* a, const void* b)
+bool is_sorted(const unsigned long* numbers, const long n)
 {
-    const unsigned long ua = *(unsigned long*)a;
-    const unsigned long ub = *(unsigned long*)b;
-    if (ua < ub) return -1;
-    if (ua > ub) return 1;
-    return 0;
+    for (long i = 1; i < n; i++)
+    {
+        if (numbers[i] < numbers[i - 1])
+        {
+            printf("Fehler bei Index %zu: %lu > %lu\n", i, numbers[i - 1], numbers[i]);
+            return false;
+        }
+    }
+    return true;
 }
 
 int isPowerOfTwo(const int b)
@@ -93,18 +91,16 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
 
     unsigned long* numbersInitial = aligned_alloc(64, n * sizeof(unsigned long));
     unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
-    unsigned long* numbersToSortByQSort = aligned_alloc(64, n * sizeof(unsigned long));
 
     init_genrand64(RANDOM_SEED);
     for (long g = 0; g < n; g++)
     {
         numbersInitial[g] = genrand64_int64();
-        numbersToSortByQSort[g] = numbersInitial[g];
     }
-    qsort(numbersToSortByQSort, n, sizeof(unsigned long), compare);
 
     unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
 
@@ -113,10 +109,9 @@ int main(int argc, char* argv[])
     {
         memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
         totalTime += sortArray_withRadixSort(numbersToSort, numbersToSwap, n, b);
-        for (long j = 0; j < n; j++)
+        if (!is_sorted(numbersToSort, n))
         {
-            if (numbersToSortByQSort[j] == numbersToSort[j]) continue;
-            printf("Error at index %lu: expected %lu, got %lu\n", j, numbersToSortByQSort[j], numbersToSort[j]);
+            printf("Failed to sort");
             return 1;
         }
     }
@@ -124,7 +119,5 @@ int main(int argc, char* argv[])
 
     free(numbersToSort);
     free(numbersToSwap);
-    free(numbersToSortByQSort);
-
     return 0;
 }
