@@ -76,9 +76,14 @@ int main(int argc, char* argv[])
 {
     const long n = argc > 1 ? atoi(argv[1]) : 100000;
     const int b = argc > 2 ? atoi(argv[2]) : 8;
-    if (b == 1 || !isPowerOfTwo(b) || b > 32)
+    if (b == 1 || !isPowerOfTwo(b))
     {
         printf("Please insert b, so b is power of 2\n");
+        return 1;
+    }
+    if (b > 16)
+    {
+        printf("Please insert b, so b is smaller than or equal to 16\n");
         return 1;
     }
 
