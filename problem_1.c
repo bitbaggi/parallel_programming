@@ -38,15 +38,15 @@ int isPowerOfTwo(const int b)
  */
 double sortArray_withRadixSort(unsigned long numbersToSort[], unsigned long numbersToSwap[], const long n, const int b)
 {
-    const int numberOfBuckets = 1 << b;
-    int bucketSizes[numberOfBuckets];
-    int bucketStart[numberOfBuckets];
+    const long numberOfBuckets = 1 << b;
+    int* bucketSizes = malloc(numberOfBuckets * sizeof(int));
+    int* bucketStart = malloc(numberOfBuckets * sizeof(int));
 
     const double start_time = omp_get_wtime();
     for (int bitrange = 0; bitrange < 64; bitrange += b)
     {
-        memset(bucketSizes, 0, sizeof(bucketSizes));
-        memset(bucketStart, 0, sizeof(bucketStart));
+        memset(bucketSizes, 0, numberOfBuckets * sizeof(int));
+        memset(bucketStart, 0, numberOfBuckets * sizeof(int));
 
         const unsigned long bitMaskForBitrange = (1UL << b) - 1;
         for (long i = 0; i < n; i += 1)
@@ -68,7 +68,11 @@ double sortArray_withRadixSort(unsigned long numbersToSort[], unsigned long numb
         numbersToSort = numbersToSwap;
         numbersToSwap = temp;
     }
-    return omp_get_wtime() - start_time;
+    const double timing = omp_get_wtime() - start_time;
+
+    free(bucketSizes);
+    free(bucketStart);
+    return timing;
 }
 
 
@@ -81,7 +85,7 @@ int main(int argc, char* argv[])
         printf("Please insert b, so b is power of 2\n");
         return 1;
     }
-    if (b > 16)
+    if (b > 32)
     {
         printf("Please insert b, so b is smaller than or equal to 16\n");
         return 1;
