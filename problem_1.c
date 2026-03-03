@@ -108,6 +108,7 @@ int main(int argc, char* argv[])
     for (int i = 0; i < NUMBER_OF_RUNS; i++)
     {
         memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
+        memset(numbersToSwap, 0, n * sizeof(unsigned long));
         totalTime += sortArray_withRadixSort(numbersToSort, numbersToSwap, n, b);
         if (!is_sorted(numbersToSort, n))
         {
