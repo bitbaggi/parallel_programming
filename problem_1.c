@@ -38,7 +38,7 @@ int isPowerOfTwo(const int b)
  */
 double sortArray_withRadixSort(unsigned long numbersToSort[], unsigned long numbersToSwap[], const long n, const int b)
 {
-    const long numberOfBuckets = 1 << b;
+    const int numberOfBuckets = 1 << b;
     int* bucketSizes = malloc(numberOfBuckets * sizeof(int));
     int* bucketStart = malloc(numberOfBuckets * sizeof(int));
 
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
         printf("Please insert b, so b is power of 2\n");
         return 1;
     }
-    if (b > 32)
+    if (b > 16)
     {
         printf("Please insert b, so b is smaller than or equal to 16\n");
         return 1;
