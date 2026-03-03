@@ -2,15 +2,27 @@
 // Copyright (c) 2026 Pascal Keßler - All rights reserved.
 //
 
-#include "mt19937-64.c"
-// Needed to use qsort to check if the radix sort works correctly
-#include <stdlib.h>
-// used for memset
-#include <string.h>
-#include <omp.h>
+#define TIMING
 
-#define NUMBER_OF_RUNS 2
+#define NUMBER_OF_RUNS 5
 #define RANDOM_SEED 1234ULL
+
+#include <omp.h>
+#include "mt19937-64.c"
+// malloc
+#include <stdlib.h>
+// memset
+#include <string.h>
+
+#ifdef TIMING
+#include <math.h>
+#endif
+
+
+int numberOfRun = 0;
+#ifdef TIMING
+double timings[NUMBER_OF_RUNS][4];
+#endif
 
 int is_sorted(const unsigned long* numbers, const long n)
 {
@@ -24,6 +36,18 @@ int is_sorted(const unsigned long* numbers, const long n)
     }
     return 1;
 }
+
+#ifdef TIMING
+double sumOfSubarray(double** numbers, int g)
+{
+    double total = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        total += numbers[i][g];
+    }
+    return total;
+}
+#endif
 
 int isPowerOfTwo(const int b)
 {
@@ -49,30 +73,54 @@ double sortArray_withRadixSort(unsigned long numbersToSort[], unsigned long numb
         memset(bucketStart, 0, numberOfBuckets * sizeof(int));
 
         const unsigned long bitMaskForBitrange = (1UL << b) - 1;
+#ifdef TIMING
+        const double start_time_bucket_size_calc = omp_get_wtime();
+#endif
         for (long i = 0; i < n; i += 1)
         {
             bucketSizes[numbersToSort[i] >> bitrange & bitMaskForBitrange]++;
         }
+#ifdef TIMING
+        timings[numberOfRun][0] += omp_get_wtime() - start_time_bucket_size_calc;
+#endif
+
+
+#ifdef TIMING
+        const double start_time_startpoint_calc = omp_get_wtime();
+#endif
         for (long i = 1; i < numberOfBuckets; i++)
         {
             bucketStart[i] = bucketStart[i - 1] + bucketSizes[i - 1];
         }
+#ifdef TIMING
+        timings[numberOfRun][1] += omp_get_wtime() - start_time_startpoint_calc;
+#endif
+
+#ifdef TIMING
+        const double start_time_bucket_insertion = omp_get_wtime();
+#endif
         for (long i = 0; i < n; i += 1)
         {
             numbersToSwap[
                 bucketStart[numbersToSort[i] >> bitrange & bitMaskForBitrange]++
             ] = numbersToSort[i];
         }
+#ifdef TIMING
+        timings[numberOfRun][2] += omp_get_wtime() - start_time_bucket_insertion;
+#endif
 
         unsigned long* temp = numbersToSort;
         numbersToSort = numbersToSwap;
         numbersToSwap = temp;
     }
-    const double timing = omp_get_wtime() - start_time;
+    const double totalTime = omp_get_wtime() - start_time;
+#ifdef TIMING
+    timings[numberOfRun][3] = totalTime;
+#endif
 
     free(bucketSizes);
     free(bucketStart);
-    return timing;
+    return timings[numberOfRun][3];
 }
 
 
@@ -105,7 +153,7 @@ int main(int argc, char* argv[])
     unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
 
     double totalTime = 0;
-    for (int i = 0; i < NUMBER_OF_RUNS; i++)
+    for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
     {
         memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
         memset(numbersToSwap, 0, n * sizeof(unsigned long));
@@ -116,6 +164,30 @@ int main(int argc, char* argv[])
             return 1;
         }
     }
+
+
+#ifdef TIMING
+    double accumulated_timings[4];
+    for (int i = 0; i < NUMBER_OF_RUNS; i++)
+    {
+        printf("Detailed Timing of Run %d: ", i + 1);
+        printf("[%f (%.2f %%), %.2f (%f %%), %f (%.2f %%)]\n",
+               timings[i][0], timings[i][0] / timings[i][3] * 100,
+               timings[i][1], timings[i][1] / timings[i][3] * 100,
+               timings[i][2], timings[i][2] / timings[i][3] * 100);
+        accumulated_timings[0] += timings[i][0];
+        accumulated_timings[1] += timings[i][1];
+        accumulated_timings[2] += timings[i][2];
+        accumulated_timings[3] += timings[i][3];
+    }
+    printf("Average Time of the Runs: ");
+    printf("[%f (%.1f %%), %.1f (%f %%), %f (%.2f %%)]\n",
+           accumulated_timings[0] / NUMBER_OF_RUNS, accumulated_timings[0] / accumulated_timings[3] * 100,
+           accumulated_timings[1] / NUMBER_OF_RUNS, accumulated_timings[1] / accumulated_timings[3] * 100,
+           accumulated_timings[2] / NUMBER_OF_RUNS, accumulated_timings[2] / accumulated_timings[3] * 100);
+
+#endif
+
     printf("Average time taken: %f seconds\n", totalTime / NUMBER_OF_RUNS);
 
     free(numbersToSort);
