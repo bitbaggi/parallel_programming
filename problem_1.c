@@ -12,17 +12,17 @@
 #define NUMBER_OF_RUNS 2
 #define RANDOM_SEED 1234ULL
 
-bool is_sorted(const unsigned long* numbers, const long n)
+int is_sorted(const unsigned long* numbers, const long n)
 {
     for (long i = 1; i < n; i++)
     {
         if (numbers[i] < numbers[i - 1])
         {
             printf("Fehler bei Index %zu: %lu > %lu\n", i, numbers[i - 1], numbers[i]);
-            return false;
+            return 0;
         }
     }
-    return true;
+    return 1;
 }
 
 int isPowerOfTwo(const int b)
