@@ -10,16 +10,6 @@
 
 #define NUMBER_OF_RUNS 10
 
-// TODO: REMOVE
-void printBitsRange(unsigned long num, int startBit, int endBit)
-{
-    for (int i = startBit; i >= endBit; i--)
-    {
-        printf("%lu", (num >> i) & 1);
-    }
-    printf("\n");
-}
-
 /**
  * Comparator for the qsort function, just for check if the radix sort works correctly
  * @param a
