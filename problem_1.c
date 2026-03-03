@@ -87,18 +87,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    unsigned long numbersToSort[n];
-    unsigned long numbersToSwap[n];
-    unsigned long numbersSorted[n];
+    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersSorted = aligned_alloc(64, n * sizeof(unsigned long));
 
     double totalTime = 0;
     for (int i = 0; i < NUMBER_OF_RUNS; i++)
     {
-        // To make n > 300000 possible
-        // unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
-        // unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
-        // unsigned long* numbersSorted = aligned_alloc(64, n * sizeof(unsigned long));
-
         for (long g = 0; g < n; g++)
         {
             numbersToSort[g] = genrand64_int64();
@@ -116,5 +111,10 @@ int main(int argc, char* argv[])
         }
     }
     printf("Average time taken: %f seconds\n", totalTime / NUMBER_OF_RUNS);
+
+    free(numbersToSort);
+    free(numbersToSwap);
+    free(numbersSorted);
+
     return 0;
 }
