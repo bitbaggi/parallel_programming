@@ -2,13 +2,15 @@
 // Copyright (c) 2026 Pascal Keßler - All rights reserved.
 //
 
+#include "mt19937-64.c"
 // Needed to use qsort to check if the radix sort works correctly
 #include <stdlib.h>
-#include "mt19937-64.c"
-#include <omp.h>
+// used for memset
 #include <string.h>
+#include <omp.h>
 
-#define NUMBER_OF_RUNS 10
+#define NUMBER_OF_RUNS 1
+#define RANDOM_SEED 1234ULL
 
 /**
  * Comparator for the qsort function, just for check if the radix sort works correctly
@@ -91,26 +93,30 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+
+    unsigned long* numbersInitial = aligned_alloc(64, n * sizeof(unsigned long));
     unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersToSortByQSort = aligned_alloc(64, n * sizeof(unsigned long));
+
+    init_genrand64(RANDOM_SEED);
+    for (long g = 0; g < n; g++)
+    {
+        numbersInitial[g] = genrand64_int64();
+        numbersToSortByQSort[g] = numbersInitial[g];
+    }
+    qsort(numbersToSortByQSort, n, sizeof(unsigned long), compare);
+
     unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
-    unsigned long* numbersSorted = aligned_alloc(64, n * sizeof(unsigned long));
 
     double totalTime = 0;
     for (int i = 0; i < NUMBER_OF_RUNS; i++)
     {
-        for (long g = 0; g < n; g++)
-        {
-            numbersToSort[g] = genrand64_int64();
-            numbersSorted[g] = numbersToSort[g];
-        }
-
+        memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
         totalTime += sortArray_withRadixSort(numbersToSort, numbersToSwap, n, b);
-
-        qsort(numbersSorted, n, sizeof(unsigned long), compare);
         for (long j = 0; j < n; j++)
         {
-            if (numbersSorted[j] == numbersToSort[j]) continue;
-            printf("Error at index %lu: expected %lu, got %lu\n", j, numbersSorted[j], numbersToSort[j]);
+            if (numbersToSortByQSort[j] == numbersToSort[j]) continue;
+            printf("Error at index %lu: expected %lu, got %lu\n", j, numbersToSortByQSort[j], numbersToSort[j]);
             return 1;
         }
     }
@@ -118,7 +124,7 @@ int main(int argc, char* argv[])
 
     free(numbersToSort);
     free(numbersToSwap);
-    free(numbersSorted);
+    free(numbersToSortByQSort);
 
     return 0;
 }
