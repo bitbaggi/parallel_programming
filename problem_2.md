@@ -16,3 +16,6 @@ with 3 lists then 3 arrays it would be ~16,8 GB of reserved space
 
 # python program to test b/n combinations and draw graphs and stuff
 
+
+# aligned_alloc vs malloc
+
