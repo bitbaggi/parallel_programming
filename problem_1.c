@@ -120,15 +120,14 @@ double sortArray_withRadixSort(unsigned long numbersToSort[], unsigned long numb
 
     free(bucketSizes);
     free(bucketStart);
-    return timings[numberOfRun][3];
+    return totalTime;
 }
-
 
 int main(int argc, char* argv[])
 {
     const long n = argc > 1 ? atoi(argv[1]) : 100000;
     const int b = argc > 2 ? atoi(argv[2]) : 8;
-    if (b == 1 || !isPowerOfTwo(b))
+    if (!isPowerOfTwo(b))
     {
         printf("Please insert b, so b is power of 2\n");
         return 1;
@@ -142,7 +141,6 @@ int main(int argc, char* argv[])
     printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
 
     unsigned long* numbersInitial = aligned_alloc(64, n * sizeof(unsigned long));
-    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
 
     init_genrand64(RANDOM_SEED);
     for (long g = 0; g < n; g++)
@@ -150,13 +148,17 @@ int main(int argc, char* argv[])
         numbersInitial[g] = genrand64_int64();
     }
 
+    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
     unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
+    // Initialize the arrays to zero to avoid any potential issues with uninitialized memory pages during timing
+    memset(numbersToSort, 0, n * sizeof(unsigned long));
+    memset(numbersToSwap, 0, n * sizeof(unsigned long));
 
     double totalTime = 0;
     for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
     {
         memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
-        memset(numbersToSwap, 0, n * sizeof(unsigned long));
+
         totalTime += sortArray_withRadixSort(numbersToSort, numbersToSwap, n, b);
         if (!is_sorted(numbersToSort, n))
         {
@@ -167,11 +169,12 @@ int main(int argc, char* argv[])
 
 
 #ifdef TIMING
+    printf("Timing result of sorting: [bucketsize calc,            bucketstart calc,          bucket filling]\n");
     double accumulated_timings[4];
     for (int i = 0; i < NUMBER_OF_RUNS; i++)
     {
         printf("Detailed Timing of Run %d: ", i + 1);
-        printf("[%f (%.2f %%), %.2f (%f %%), %f (%.2f %%)]\n",
+        printf("[%.8f (%.8f %%), %.8f (%.8f %%), %.8f (%.8f %%)]\n",
                timings[i][0], timings[i][0] / timings[i][3] * 100,
                timings[i][1], timings[i][1] / timings[i][3] * 100,
                timings[i][2], timings[i][2] / timings[i][3] * 100);
@@ -181,13 +184,12 @@ int main(int argc, char* argv[])
         accumulated_timings[3] += timings[i][3];
     }
     printf("Average Time of the Runs: ");
-    printf("[%f (%.1f %%), %.1f (%f %%), %f (%.2f %%)]\n",
+    printf("[%.8f (%.8f %%), %.8f (%.8f %%), %.8f (%.8f %%)]\n",
            accumulated_timings[0] / NUMBER_OF_RUNS, accumulated_timings[0] / accumulated_timings[3] * 100,
            accumulated_timings[1] / NUMBER_OF_RUNS, accumulated_timings[1] / accumulated_timings[3] * 100,
            accumulated_timings[2] / NUMBER_OF_RUNS, accumulated_timings[2] / accumulated_timings[3] * 100);
 
 #endif
-
     printf("Average time taken: %f seconds\n", totalTime / NUMBER_OF_RUNS);
 
     free(numbersToSort);
