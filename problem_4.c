@@ -206,7 +206,7 @@ double sortArray_withRadixSort_sequential(unsigned long numbersToSort[], unsigne
 
 int main(int argc, char* argv[])
 {
-    const long n = argc > 1 ? atoi(argv[1]) : 100000;
+    const long n = argc > 1 ? atol(argv[1]) : 100000;
     const int b = argc > 2 ? atoi(argv[2]) : 8;
     if (!isPowerOfTwo(b))
     {
@@ -220,27 +220,28 @@ int main(int argc, char* argv[])
     }
 
     printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
-
     unsigned long* numbersInitial = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
 
     init_genrand64(RANDOM_SEED);
+#pragma parallel for
     for (long g = 0; g < n; g++)
     {
         numbersInitial[g] = genrand64_int64();
+        numbersToSort[g] = 0;
+        numbersToSwap[g] = 0;
     }
-
-    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
-    unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
-    // Initialize the arrays to zero to avoid any potential issues with uninitialized memory pages during timing
-    memset(numbersToSort, 0, n * sizeof(unsigned long));
-    memset(numbersToSwap, 0, n * sizeof(unsigned long));
 
     double totalTime = 0;
     for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
     {
-        memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
+#pragma parallel for
+        for (long g = 0; g < n; g++)
+        {
+            numbersToSort[g] = numbersInitial[g];
+        }
 
-        // totalTime += sortArray_withRadixSort(numbersToSort, numbersToSwap, n, b);
         totalTime += sortArray_withRadixSort_parallel(numbersToSort, numbersToSwap, n, b);
         if (!is_sorted(numbersToSort, n))
         {
