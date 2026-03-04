@@ -4,7 +4,7 @@ from timing_parser import parse_timing_output
 
 MAX_SECONDS = 10
 STEP_SIZE = 20000000
-MAX_NUMBER_COUNT = 1000000000
+MAX_NUMBER_COUNT = 10000000000
 BIT_COUNTS_TO_TEST = [1, 2, 4, 8, 16]
 
 def write_timings_to_file(file_name: str, timings_to_write: dict):

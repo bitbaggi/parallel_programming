@@ -61,7 +61,7 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
 
     const int numberOfBuckets = 1 << b;
 
-    const int numThreads = omp_get_max_threads();
+    int numThreads = omp_get_max_threads();
     int** perThreadBucketSizes = malloc(numThreads * sizeof(int*));
     int** perThreadBucketStart = malloc(numThreads * sizeof(int*));
     for (int t = 0; t < numThreads; t++)
@@ -77,6 +77,9 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
         double timings_bucket_insertion = 0;
 #pragma omp parallel reduction(+:timings_bucket_size_calc)  reduction(+:timings_bucket_insertion)
         {
+#pragma omp single
+            numThreads = omp_get_num_threads();
+
             long i;
             const int tid = omp_get_thread_num();
             memset(perThreadBucketSizes[tid], 0, numberOfBuckets * sizeof(int));
@@ -103,7 +106,7 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
             }
 
 
-            double start_time_bucket_insertion = omp_get_wtime();
+            const double start_time_bucket_insertion = omp_get_wtime();
 #pragma omp for schedule(static) private(i)
             for (i = 0; i < n; i++)
             {
@@ -249,7 +252,7 @@ int main(int argc, char* argv[])
 
 #ifdef TIMING
     printf("Timing result of sorting: [bucketsize calc,            bucketstart calc,          bucket filling]\n");
-    double accumulated_timings[4];
+    double accumulated_timings[4] = {0};
     for (int i = 0; i < NUMBER_OF_RUNS; i++)
     {
         printf("Detailed Timing of Run %d: ", i + 1);
