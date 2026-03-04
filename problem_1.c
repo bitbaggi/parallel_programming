@@ -60,7 +60,7 @@ int isPowerOfTwo(const int b)
  * @param n number of elements to sort
  * @param b number of bits per element
  */
-double sortArray_withRadixSort(unsigned long numbersToSort[], unsigned long numbersToSwap[], const long n, const int b)
+double sortArray_withRadixSort_sequential(unsigned long numbersToSort[], unsigned long numbersToSwap[], const long n, const int b)
 {
     const int numberOfBuckets = 1 << b;
     int* bucketSizes = malloc(numberOfBuckets * sizeof(int));
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
     {
         memcpy(numbersToSort, numbersInitial, n * sizeof(unsigned long));
 
-        totalTime += sortArray_withRadixSort(numbersToSort, numbersToSwap, n, b);
+        totalTime += sortArray_withRadixSort_sequential(numbersToSort, numbersToSwap, n, b);
         if (!is_sorted(numbersToSort, n))
         {
             printf("Failed to sort");
