@@ -43,10 +43,10 @@ def run_sort_program(program: str) -> dict:
                 break
     return timings
 
-seq_timings = run_sort_program('problem_1')
+seq_timings = run_sort_program('../problem_1')
 
 write_timings_to_file('timings_sequential.csv', seq_timings)
 
-par_timings = run_sort_program('problem_4')
+par_timings = run_sort_program('../problem_4')
 
 write_timings_to_file('timings_sequential.csv', par_timings)
