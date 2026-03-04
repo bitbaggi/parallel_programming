@@ -1,4 +1,16 @@
+.gitignore
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
 .git
+.idea
 /cmake-build-debug/
 /problem_1.dSYM/
 /python_part/.venv/
+/*/
