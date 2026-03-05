@@ -125,7 +125,7 @@ double sortArray_withRadixSort_sequential(unsigned long numbersToSort[], unsigne
 
 int main(int argc, char* argv[])
 {
-    const long n = argc > 1 ? atoi(argv[1]) : 100000;
+    const long n = argc > 1 ? atol(argv[1]) : 100000;
     const int b = argc > 2 ? atoi(argv[2]) : 8;
     if (!isPowerOfTwo(b))
     {
@@ -143,13 +143,13 @@ int main(int argc, char* argv[])
     unsigned long* numbersInitial = aligned_alloc(64, n * sizeof(unsigned long));
 
     init_genrand64(RANDOM_SEED);
-    for (long g = 0; g < n; g++)
+    for (long i = 0; i < n; i++)
     {
-        numbersInitial[g] = genrand64_int64();
+        numbersInitial[i] = genrand64_int64();
     }
 
-    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
-    unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersToSort = malloc(n * sizeof(unsigned long));
+    unsigned long* numbersToSwap = malloc(n * sizeof(unsigned long));
     // Initialize the arrays to zero to avoid any potential issues with uninitialized memory pages during timing
     memset(numbersToSort, 0, n * sizeof(unsigned long));
     memset(numbersToSwap, 0, n * sizeof(unsigned long));

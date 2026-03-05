@@ -4,7 +4,7 @@
 
 #define TIMING
 
-#define NUMBER_OF_RUNS 50
+#define NUMBER_OF_RUNS 5
 #define RANDOM_SEED 1234ULL
 #define CACHE_LINE 64
 
@@ -58,150 +58,86 @@ int isPowerOfTwo(const int b)
 double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned long numbersToSwap[], const long n,
                                         const int b)
 {
-    const double start_time = omp_get_wtime();
+    const double startTime = omp_get_wtime();
 
-    const int numberOfBuckets = 1 << b;
+    const int numBuckets = 1 << b;
 
     int numThreads = omp_get_max_threads();
-    int** perThreadBucketSizes = malloc(numThreads * sizeof(int*));
-    long** perThreadBucketStart = malloc(numThreads * sizeof(long*));
+    int** threadBucketSize = malloc(numThreads * sizeof(int*));
+    long** threadStartingPoint = malloc(numThreads * sizeof(long*));
     for (int t = 0; t < numThreads; t++)
     {
-        perThreadBucketSizes[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(int));
-        perThreadBucketStart[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(long));
+        threadBucketSize[t] = aligned_alloc(CACHE_LINE, numBuckets * sizeof(int));
+        threadStartingPoint[t] = aligned_alloc(CACHE_LINE, numBuckets * sizeof(long));
     }
 
     for (int bitrange = 0; bitrange < 64; bitrange += b)
     {
         const unsigned long bitMaskForBitrange = (1UL << b) - 1;
-        double timings_bucket_size_calc = 0;
-        double timings_bucket_insertion = 0;
-#pragma omp parallel reduction(+:timings_bucket_size_calc)  reduction(+:timings_bucket_insertion)
+        double timingsBucketSizeCalculation = 0;
+        double timingsBucketInsertions = 0;
+#pragma omp parallel reduction(+:timingsBucketSizeCalculation)  reduction(+:timingsBucketInsertions)
         {
+            const int tid = omp_get_thread_num();
+
 #pragma omp single
             numThreads = omp_get_num_threads();
 
-            long i;
-            const int tid = omp_get_thread_num();
-            memset(perThreadBucketSizes[tid], 0, numberOfBuckets * sizeof(int));
+            memset(threadBucketSize[tid], 0, numBuckets * sizeof(int));
 
-            double start_time_bucket_size_calc = omp_get_wtime();
+            long i;
+            double startTimeBucketSizeCalculation = omp_get_wtime();
 #pragma omp for schedule(static) private(i)
             for (i = 0; i < n; i++)
-                perThreadBucketSizes[tid][numbersToSort[i] >> bitrange & bitMaskForBitrange]++;
-            timings_bucket_size_calc += omp_get_wtime() - start_time_bucket_size_calc;
+                threadBucketSize[tid][numbersToSort[i] >> bitrange & bitMaskForBitrange]++;
+            timingsBucketSizeCalculation += omp_get_wtime() - startTimeBucketSizeCalculation;
 
 #pragma omp single
             {
-                double start_time_bucket_start_calculation = omp_get_wtime();
-                long offset = 0;
-                for (int bucket = 0; bucket < numberOfBuckets; bucket++)
+                double startTimeBucketStartCalculation = omp_get_wtime();
+                long startIdxInCompleteNumberList = 0;
+                for (int bucketNum = 0; bucketNum < numBuckets; bucketNum++)
                 {
-                    for (int t = 0; t < numThreads; t++)
+                    for (int threadNum = 0; threadNum < numThreads; threadNum++)
                     {
-                        perThreadBucketStart[t][bucket] = offset;
-                        offset += perThreadBucketSizes[t][bucket];
+                        threadStartingPoint[threadNum][bucketNum] = startIdxInCompleteNumberList;
+                        startIdxInCompleteNumberList += threadBucketSize[threadNum][bucketNum];
                     }
                 }
-                timings[numberOfRun][1] += omp_get_wtime() - start_time_bucket_start_calculation;
+                timings[numberOfRun][1] += omp_get_wtime() - startTimeBucketStartCalculation;
             }
 
 
-            const double start_time_bucket_insertion = omp_get_wtime();
+            const double startTimeBucketInsertion = omp_get_wtime();
 #pragma omp for schedule(static) private(i)
             for (i = 0; i < n; i++)
             {
-                numbersToSwap[perThreadBucketStart[tid][
+                numbersToSwap[threadStartingPoint[tid][
                         numbersToSort[i] >> bitrange & bitMaskForBitrange]++
                 ] = numbersToSort[i];
             }
-            timings_bucket_insertion += omp_get_wtime() - start_time_bucket_insertion;
+            timingsBucketInsertions += omp_get_wtime() - startTimeBucketInsertion;
         }
 
-        timings[numberOfRun][0] += timings_bucket_size_calc / numThreads;
-        timings[numberOfRun][2] += timings_bucket_insertion / numThreads;
+        timings[numberOfRun][0] += timingsBucketSizeCalculation / numThreads;
+        timings[numberOfRun][2] += timingsBucketInsertions / numThreads;
 
         unsigned long* temp = numbersToSort;
         numbersToSort = numbersToSwap;
         numbersToSwap = temp;
     }
-    const double totalTime = omp_get_wtime() - start_time;
+    const double totalTime = omp_get_wtime() - startTime;
 #ifdef TIMING
     timings[numberOfRun][3] = totalTime;
 #endif
     for (int t = 0; t < numThreads; t++)
     {
-        free(perThreadBucketSizes[t]);
-        free(perThreadBucketStart[t]);
+        free(threadBucketSize[t]);
+        free(threadStartingPoint[t]);
     }
 
-    free(perThreadBucketSizes);
-    free(perThreadBucketStart);
-    return totalTime;
-}
-
-double sortArray_withRadixSort_sequential(unsigned long numbersToSort[], unsigned long numbersToSwap[], const long n,
-                                          const int b)
-{
-    const double start_time = omp_get_wtime();
-
-    const int numberOfBuckets = 1 << b;
-    int* bucketSizes = malloc(numberOfBuckets * sizeof(int));
-    int* bucketStart = malloc(numberOfBuckets * sizeof(int));
-    for (int bitrange = 0; bitrange < 64; bitrange += b)
-    {
-        memset(bucketSizes, 0, numberOfBuckets * sizeof(int));
-        memset(bucketStart, 0, numberOfBuckets * sizeof(int));
-
-        const unsigned long bitMaskForBitrange = (1UL << b) - 1;
-#ifdef TIMING
-        const double start_time_bucket_size_calc = omp_get_wtime();
-#endif
-        for (long i = 0; i < n; i += 1)
-        {
-            bucketSizes[numbersToSort[i] >> bitrange & bitMaskForBitrange]++;
-        }
-#ifdef TIMING
-        timings[numberOfRun][0] += omp_get_wtime() - start_time_bucket_size_calc;
-#endif
-
-
-#ifdef TIMING
-        const double start_time_startpoint_calc = omp_get_wtime();
-#endif
-        for (long i = 1; i < numberOfBuckets; i++)
-        {
-            bucketStart[i] = bucketStart[i - 1] + bucketSizes[i - 1];
-        }
-#ifdef TIMING
-        timings[numberOfRun][1] += omp_get_wtime() - start_time_startpoint_calc;
-#endif
-
-#ifdef TIMING
-        const double start_time_bucket_insertion = omp_get_wtime();
-#endif
-
-        for (long i = 0; i < n; i += 1)
-        {
-            numbersToSwap[
-                bucketStart[numbersToSort[i] >> bitrange & bitMaskForBitrange]++
-            ] = numbersToSort[i];
-        }
-#ifdef TIMING
-        timings[numberOfRun][2] += omp_get_wtime() - start_time_bucket_insertion;
-#endif
-
-        unsigned long* temp = numbersToSort;
-        numbersToSort = numbersToSwap;
-        numbersToSwap = temp;
-    }
-    const double totalTime = omp_get_wtime() - start_time;
-#ifdef TIMING
-    timings[numberOfRun][3] = totalTime;
-#endif
-
-    free(bucketSizes);
-    free(bucketStart);
+    free(threadBucketSize);
+    free(threadStartingPoint);
     return totalTime;
 }
 
