@@ -63,12 +63,12 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
     const int numberOfBuckets = 1 << b;
 
     int numThreads = omp_get_max_threads();
-    int** perThreadBucketSizes = malloc(numThreads * sizeof(int*));
-    int** perThreadBucketStart = malloc(numThreads * sizeof(int*));
+    long** perThreadBucketSizes = malloc(numThreads * sizeof(long*));
+    long** perThreadBucketStart = malloc(numThreads * sizeof(long*));
     for (int t = 0; t < numThreads; t++)
     {
-        perThreadBucketSizes[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(int));
-        perThreadBucketStart[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(int));
+        perThreadBucketSizes[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(long));
+        perThreadBucketStart[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(long));
     }
 
     for (int bitrange = 0; bitrange < 64; bitrange += b)
@@ -83,7 +83,7 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
 
             long i;
             const int tid = omp_get_thread_num();
-            memset(perThreadBucketSizes[tid], 0, numberOfBuckets * sizeof(int));
+            memset(perThreadBucketSizes[tid], 0, numberOfBuckets * sizeof(long));
 
             double start_time_bucket_size_calc = omp_get_wtime();
 #pragma omp for schedule(static) private(i)
