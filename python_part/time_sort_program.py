@@ -10,8 +10,9 @@ def run_sort_program(program: str,
     for bits in bitsToTest:
         for count_n in nToTest:
             try:
+                print(f"Run test for {bits} bits and n={count_n}")
                 result = subprocess.run(
-                    f"{program} {str(count_n)} {str(bits)}",
+                    [program, str(count_n), str(bits)],
                     capture_output=True,
                     timeout=300,
                     env=customEnv
