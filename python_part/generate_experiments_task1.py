@@ -8,12 +8,12 @@ BIT_COUNTS_TO_TEST = [1, 2, 4, 8, 16]
 
 seq_timings = run_sort_program('../problem_1', BIT_COUNTS_TO_TEST,
                                {n for n in range(50000000, MAX_NUMBER_COUNT, STEP_SIZE)},
-                               MAX_SECONDS)
+                               MAX_SECONDS, customEnv={})
 
 write_timings_to_file('timings_sequential.csv', seq_timings)
 
 par_timings = run_sort_program('../problem_4', BIT_COUNTS_TO_TEST,
                                {n for n in range(50000000, MAX_NUMBER_COUNT, STEP_SIZE)},
-                               MAX_SECONDS)
+                               MAX_SECONDS, customEnv={})
 
 write_timings_to_file('timings_sequential.csv', par_timings)
