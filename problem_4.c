@@ -4,8 +4,9 @@
 
 #define TIMING
 
-#define NUMBER_OF_RUNS 5
+#define NUMBER_OF_RUNS 50
 #define RANDOM_SEED 1234ULL
+#define CACHE_LINE 64
 
 #include <omp.h>
 #include "mt19937-64.c"
@@ -66,8 +67,8 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
     int** perThreadBucketStart = malloc(numThreads * sizeof(int*));
     for (int t = 0; t < numThreads; t++)
     {
-        perThreadBucketSizes[t] = malloc(numberOfBuckets * sizeof(int));
-        perThreadBucketStart[t] = malloc(numberOfBuckets * sizeof(int));
+        perThreadBucketSizes[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(int));
+        perThreadBucketStart[t] = aligned_alloc(CACHE_LINE, numberOfBuckets * sizeof(int));
     }
 
     for (int bitrange = 0; bitrange < 64; bitrange += b)
