@@ -220,18 +220,10 @@ int main(int argc, char* argv[])
     }
 
     printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
-    unsigned long* numbersInitial = aligned_alloc(64, n * sizeof(unsigned long));
     unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
     unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
 
     init_genrand64(RANDOM_SEED);
-#pragma parallel for
-    for (long g = 0; g < n; g++)
-    {
-        numbersInitial[g] = genrand64_int64();
-        numbersToSort[g] = 0;
-        numbersToSwap[g] = 0;
-    }
 
     double totalTime = 0;
     for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
@@ -239,7 +231,8 @@ int main(int argc, char* argv[])
 #pragma parallel for
         for (long g = 0; g < n; g++)
         {
-            numbersToSort[g] = numbersInitial[g];
+            numbersToSort[g] = genrand64_int64();
+            numbersToSwap[g] = 0;
         }
 
         totalTime += sortArray_withRadixSort_parallel(numbersToSort, numbersToSwap, n, b);
