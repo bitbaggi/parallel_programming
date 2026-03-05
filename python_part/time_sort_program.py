@@ -11,7 +11,7 @@ def run_sort_program(program: str,
         for count_n in nToTest:
             try:
                 result = subprocess.run(
-                    [program, str(count_n), str(bits)],
+                    f"{program} {str(count_n)} {str(bits)}",
                     capture_output=True,
                     timeout=300,
                     env=customEnv
