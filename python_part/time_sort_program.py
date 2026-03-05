@@ -22,11 +22,11 @@ def run_sort_program(program: str,
                     print(result.stdout.decode())
                     continue
                 result = parse_timing_output(result.stdout.decode())
+                timings[(bits, count_n)] = result
                 print(f"{bits},{count_n} done in {result[len(result) - 1][1]:.2f}s")
                 if result[len(result) - 1][1] > maxSeconds:
                     print(f"greater 10s -> next bits")
                     break
-                timings[(bits, count_n)] = result
             except subprocess.TimeoutExpired as e:
                 print(f"Timeout -> next bits")
                 break
