@@ -9,3 +9,9 @@ n = 2350000000, 2350000000 * 8 bytes = 18,8 gb => 3 * 18,8 = 56,4 gb
 
 # cache lines
 allocate bucketsizes as continuous memory lines
+
+
+# l1 vs l2 cache
+l1 cache is 32kb
+-> b=8 => 256 buckets á 
+l2 cache is 256kb

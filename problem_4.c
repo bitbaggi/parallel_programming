@@ -94,7 +94,7 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
 #pragma omp single
             {
                 double start_time_bucket_start_calculation = omp_get_wtime();
-                int offset = 0;
+                long offset = 0;
                 for (int bucket = 0; bucket < numberOfBuckets; bucket++)
                 {
                     for (int t = 0; t < numThreads; t++)
