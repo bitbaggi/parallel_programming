@@ -5,7 +5,7 @@ def run_sort_program(program: str,
                      bitsToTest: [int],
                      nToTest: [int],
                      maxSeconds: float,
-                     customEnv: dict) -> dict:
+                     customEnv = None) -> dict:
     timings = {}
     for bits in bitsToTest:
         for count_n in nToTest:
