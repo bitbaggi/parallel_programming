@@ -14,13 +14,13 @@ def run_sort_program(program: str,
                 result = subprocess.run(
                     [program, str(count_n), str(bits)],
                     capture_output=True,
-                    timeout=300,
+                    timeout=500,
                     env=customEnv
                 )
+                print(result.stdout.decode())
                 if result.returncode != 0:
                     print(f"Fehler (exit {result.returncode}):")
                     print(result.stderr.decode())
-                    print(result.stdout.decode())
                     continue
                 result = parse_timing_output(result.stdout.decode())
                 timings[(bits, count_n)] = result

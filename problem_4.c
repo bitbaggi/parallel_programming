@@ -23,6 +23,7 @@
 int numberOfRun = 0;
 #ifdef TIMING
 double timings[NUMBER_OF_RUNS][4];
+int threadsUsed[NUMBER_OF_RUNS][64];
 #endif
 
 int is_sorted(const unsigned long* numbers, const long n)
@@ -81,7 +82,12 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
             const int tid = omp_get_thread_num();
 
 #pragma omp single
-            numThreads = omp_get_num_threads();
+            {
+                numThreads = omp_get_num_threads();
+#ifdef TIMING
+                threadsUsed[numberOfRun][bitrange] = numThreads;
+#endif
+            }
 
             memset(threadBucketSize[tid], 0, numBuckets * sizeof(int));
 
@@ -157,8 +163,8 @@ int main(int argc, char* argv[])
     }
 
     printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
-    unsigned long* numbersToSort = aligned_alloc(64, n * sizeof(unsigned long));
-    unsigned long* numbersToSwap = aligned_alloc(64, n * sizeof(unsigned long));
+    unsigned long* numbersToSort = aligned_alloc(CACHE_LINE, n * sizeof(unsigned long));
+    unsigned long* numbersToSwap = aligned_alloc(CACHE_LINE, n * sizeof(unsigned long));
 
     init_genrand64(RANDOM_SEED);
 
@@ -166,10 +172,10 @@ int main(int argc, char* argv[])
     for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
     {
 #pragma parallel for
-        for (long g = 0; g < n; g++)
+        for (long i = 0; i < n; i++)
         {
-            numbersToSort[g] = genrand64_int64();
-            numbersToSwap[g] = 0;
+            numbersToSort[i] = genrand64_int64();
+            numbersToSwap[i] = 0;
         }
 
         totalTime += sortArray_withRadixSort_parallel(numbersToSort, numbersToSwap, n, b);
@@ -201,9 +207,25 @@ int main(int argc, char* argv[])
            accumulated_timings[0] / NUMBER_OF_RUNS, accumulated_timings[0] / accumulated_timings[3] * 100,
            accumulated_timings[1] / NUMBER_OF_RUNS, accumulated_timings[1] / accumulated_timings[3] * 100,
            accumulated_timings[2] / NUMBER_OF_RUNS, accumulated_timings[2] / accumulated_timings[3] * 100);
-
 #endif
     printf("Average time taken: %f seconds\n", totalTime / NUMBER_OF_RUNS);
+
+#ifdef TIMING
+    printf("Threads really used: [");
+    for (int i = 0; i < NUMBER_OF_RUNS; i++)
+    {
+        printf("Run %d: (", i + 1);
+        for (int bitrange = 0; bitrange < 63; bitrange += b)
+        {
+            printf("%d", threadsUsed[i][bitrange]);
+            if (bitrange < 63 - b) printf(", ");
+        }
+        printf(")");
+        if (i != NUMBER_OF_RUNS - 1) printf(", ");
+    }
+    printf("]\n");
+#endif
+
 
     free(numbersToSort);
     free(numbersToSwap);

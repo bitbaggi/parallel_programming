@@ -1,18 +1,24 @@
-MAXIMUM_N_SEQ = 470000000
+MAXIMUM_N_SEQ = 450000000
 MAX_SECONDS = 10
 
 from timing_helper import write_timings_to_file
 from time_sort_program import run_sort_program
 
 # STRONG SCALING:
-THREAD_COUNTS = [1, 2, 4, 8, 16, 32]
+THREAD_COUNTS = [1, 2, 4, 8, 12, 16, 20, 24, 28, 32]
 BITS_TO_TEST = [8]
-N_TO_TEST = lambda p: {n for n in range(MAXIMUM_N_SEQ, MAXIMUM_N_SEQ * p + 1 , MAXIMUM_N_SEQ)}
 
-print(N_TO_TEST(1))
 for threadCount in THREAD_COUNTS:
     print("Run sort program")
-    timings = run_sort_program('../problem_4', BITS_TO_TEST, N_TO_TEST(threadCount), MAX_SECONDS,
+    timings = run_sort_program('../problem_4', BITS_TO_TEST, [MAXIMUM_N_SEQ], MAX_SECONDS,
                                customEnv={'OMP_NUM_THREADS': str(threadCount)})
-    write_timings_to_file(f'./results/timings_parallel_{threadCount}_threads.csv', timings)
+    write_timings_to_file(f'./results/parallel/strong_scaling/{threadCount}_threads.csv', timings)
+    print(f"ThreadCount {threadCount} done")
+
+# WEAK SCALING:
+for threadCount in THREAD_COUNTS:
+    print("Run sort program")
+    timings = run_sort_program('../problem_4', BITS_TO_TEST, [MAXIMUM_N_SEQ * threadCount], MAX_SECONDS,
+                               customEnv={'OMP_NUM_THREADS': str(threadCount)})
+    write_timings_to_file(f'./results/parallel/weak_scaling/{threadCount}_threads.csv', timings)
     print(f"ThreadCount {threadCount} done")
