@@ -171,12 +171,14 @@ int main(int argc, char* argv[])
     double totalTime = 0;
     for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
     {
-#pragma parallel for
+            const double startTimeBucketInsertion = omp_get_wtime();
+#pragma omp parallel for
         for (long i = 0; i < n; i++)
         {
             numbersToSort[i] = genrand64_int64();
             numbersToSwap[i] = 0;
         }
+            printf("Time for gen %.4f \n", omp_get_wtime() - startTimeBucketInsertion);
 
         totalTime += sortArray_withRadixSort_parallel(numbersToSort, numbersToSwap, n, b);
         if (!is_sorted(numbersToSort, n))
