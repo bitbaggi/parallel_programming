@@ -1,11 +1,11 @@
-MAXIMUM_N_SEQ = 450000000
+MAXIMUM_N_SEQ = 400000000
 MAX_SECONDS = 10
 
 from timing_helper import write_timings_to_file
 from time_sort_program import run_sort_program
 
 # STRONG SCALING:
-THREAD_COUNTS = [1, 2, 4, 8, 12, 16, 20, 24, 28, 32]
+THREAD_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 BITS_TO_TEST = [8]
 
 for threadCount in THREAD_COUNTS:
