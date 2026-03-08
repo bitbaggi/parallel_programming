@@ -2,11 +2,6 @@
 // Copyright (c) 2026 Pascal Keßler - All rights reserved.
 //
 
-// #define TIMING
-// #define A_TEST_1
-// #define A_TEST_2
-#define A_TEST_3
-
 #define NUMBER_OF_RUNS 3
 #define RANDOM_SEED 1234ULL
 #define CACHE_LINE 64
