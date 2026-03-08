@@ -94,11 +94,15 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
 #pragma omp for schedule(static) private(i)
             for (i = 0; i < n; i++)
                 threadBucketSize[tid][numbersToSort[i] >> bitrange & bitMaskForBitrange]++;
+#ifdef TIMING
             timingsBucketSizeCalculation += omp_get_wtime() - startTimeBucketSizeCalculation;
+#endif
 
 #pragma omp single
             {
+#ifdef TIMING
                 double startTimeBucketStartCalculation = omp_get_wtime();
+#endif
                 long startIdxInCompleteNumberList = 0;
                 for (int bucketNum = 0; bucketNum < numBuckets; bucketNum++)
                 {
@@ -108,11 +112,14 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
                         startIdxInCompleteNumberList += threadBucketSize[threadNum][bucketNum];
                     }
                 }
+#ifdef TIMING
                 timings[numberOfRun][1] += omp_get_wtime() - startTimeBucketStartCalculation;
+#endif
             }
 
-
+#ifdef TIMING
             const double startTimeBucketInsertion = omp_get_wtime();
+#endif
 #pragma omp for schedule(static) private(i)
             for (i = 0; i < n; i++)
             {
@@ -120,12 +127,14 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
                         numbersToSort[i] >> bitrange & bitMaskForBitrange]++
                 ] = numbersToSort[i];
             }
+#ifdef TIMING
             timingsBucketInsertions += omp_get_wtime() - startTimeBucketInsertion;
+#endif
         }
-
+#ifdef TIMING
         timings[numberOfRun][0] += timingsBucketSizeCalculation / numThreads;
         timings[numberOfRun][2] += timingsBucketInsertions / numThreads;
-
+#endif
         unsigned long* temp = numbersToSort;
         numbersToSort = numbersToSwap;
         numbersToSwap = temp;
