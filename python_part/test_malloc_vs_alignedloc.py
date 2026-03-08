@@ -20,3 +20,4 @@ for threadCount in THREAD_COUNTS:
                            customEnv={'OMP_NUM_THREADS': str(threadCount)})
     write_timings_to_file(f'./results/tests/malloc_{threadCount}_threads.csv', timings)
     print(f"Malloc done")
+
