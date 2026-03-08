@@ -10,7 +10,7 @@ BITS_TO_TEST = [8]
 
 for threadCount in THREAD_COUNTS:
     print("Run sort program")
-    timings = run_sort_program('../problem_4', BITS_TO_TEST, [MAXIMUM_N_SEQ], MAX_SECONDS,
+    timings = run_sort_program('../problem_3', BITS_TO_TEST, [MAXIMUM_N_SEQ], MAX_SECONDS,
                                customEnv={'OMP_NUM_THREADS': str(threadCount)})
     write_timings_to_file(f'./results/parallel/strong_scaling/{threadCount}_threads.csv', timings)
     print(f"ThreadCount {threadCount} done")
@@ -18,7 +18,7 @@ for threadCount in THREAD_COUNTS:
 # WEAK SCALING:
 for threadCount in THREAD_COUNTS:
     print("Run sort program")
-    timings = run_sort_program('../problem_4', BITS_TO_TEST, [MAXIMUM_N_SEQ * threadCount], MAX_SECONDS,
+    timings = run_sort_program('../problem_3', BITS_TO_TEST, [MAXIMUM_N_SEQ * threadCount], MAX_SECONDS,
                                customEnv={'OMP_NUM_THREADS': str(threadCount)})
     write_timings_to_file(f'./results/parallel/weak_scaling/{threadCount}_threads.csv', timings)
     print(f"ThreadCount {threadCount} done")

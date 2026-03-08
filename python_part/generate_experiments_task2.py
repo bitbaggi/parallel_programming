@@ -2,7 +2,7 @@ from time_sort_program import run_sort_program
 from timing_helper import write_timings_to_file
 
 MAX_SECONDS = 10
-STEP_SIZE = 50000000
+STEP_SIZE = 250000000
 MAX_NUMBER_COUNT = 10000000000
 BIT_COUNTS_TO_TEST = [1, 2, 4, 8, 16]
 

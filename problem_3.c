@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Pascal Keßler - All rights reserved.
 //
 
+// #define TIMING
+
 #define NUMBER_OF_RUNS 5
 #define RANDOM_SEED 1234ULL
 #define CACHE_LINE 64
@@ -62,13 +64,8 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
     const int numBuckets = 1 << b;
 
     int numThreads = omp_get_max_threads();
-    int** threadBucketSize = malloc(numThreads * sizeof(int*));
-    long** threadStartingPoint = malloc(numThreads * sizeof(long*));
-    for (int t = 0; t < numThreads; t++)
-    {
-        threadBucketSize[t] = aligned_alloc(CACHE_LINE, numBuckets * sizeof(int));
-        threadStartingPoint[t] = aligned_alloc(CACHE_LINE, numBuckets * sizeof(long));
-    }
+    int threadBucketSize[numThreads][numBuckets];
+    long threadStartingPoint[numThreads][numBuckets];
 
     for (int bitrange = 0; bitrange < 64; bitrange += b)
     {
@@ -143,14 +140,6 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
 #ifdef TIMING
     timings[numberOfRun][3] = totalTime;
 #endif
-    for (int t = 0; t < numThreads; t++)
-    {
-        free(threadBucketSize[t]);
-        free(threadStartingPoint[t]);
-    }
-
-    free(threadBucketSize);
-    free(threadStartingPoint);
     return totalTime;
 }
 
@@ -170,31 +159,33 @@ int main(int argc, char* argv[])
     }
 
     printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
-#ifdef A_TEST
-    unsigned long* numbersToSort = aligned_alloc(CACHE_LINE, n * sizeof(unsigned long));
-    unsigned long* numbersToSwap = aligned_alloc(CACHE_LINE, n * sizeof(unsigned long));
-#else
     unsigned long* numbersToSort = malloc(n * sizeof(unsigned long));
     unsigned long* numbersToSwap = malloc(n * sizeof(unsigned long));
-#endif
+    if (numbersToSort == NULL || numbersToSwap == NULL)
+    {
+        printf("Could not allocate memory\n");
+        free(numbersToSort);
+        free(numbersToSwap);
+        return 1;
+    }
 
     init_genrand64(RANDOM_SEED);
 
     double totalTime = 0;
     for (numberOfRun = 0; numberOfRun < NUMBER_OF_RUNS; numberOfRun++)
     {
-        const double startTimeBucketInsertion = omp_get_wtime();
         for (long i = 0; i < n; i++)
         {
             numbersToSort[i] = genrand64_int64();
             numbersToSwap[i] = 0;
         }
-        printf("Time for gen %.4f \n", omp_get_wtime() - startTimeBucketInsertion);
 
         totalTime += sortArray_withRadixSort_parallel(numbersToSort, numbersToSwap, n, b);
         if (!is_sorted(numbersToSort, n))
         {
             printf("Failed to sort");
+            free(numbersToSort);
+            free(numbersToSwap);
             return 1;
         }
     }

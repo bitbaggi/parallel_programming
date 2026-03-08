@@ -9,7 +9,7 @@ find_package(OpenMP REQUIRED)
 
 add_executable(obligatory_assignment_1
         problem_1.c
-        problem_4.c
+        problem_3.c
 )
 
 target_link_libraries(obligatory_assignment_1 OpenMP::OpenMP_C)
