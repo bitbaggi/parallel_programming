@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Pascal Keßler - All rights reserved.
 //
 
-#define NUMBER_OF_RUNS 3
+#define NUMBER_OF_RUNS 5
 #define RANDOM_SEED 1234ULL
 #define CACHE_LINE 64
 
@@ -62,22 +62,12 @@ double sortArray_withRadixSort_parallel(unsigned long numbersToSort[], unsigned 
     const int numBuckets = 1 << b;
 
     int numThreads = omp_get_max_threads();
-#ifdef A_TEST_1
-    int** threadBucketSize = aligned_alloc(CACHE_LINE, numThreads * sizeof(int*));
-    long** threadStartingPoint = aligned_alloc(CACHE_LINE, numThreads * sizeof(long*));
-#else
     int** threadBucketSize = malloc(numThreads * sizeof(int*));
     long** threadStartingPoint = malloc(numThreads * sizeof(long*));
-#endif
     for (int t = 0; t < numThreads; t++)
     {
-#ifdef A_TEST_2
         threadBucketSize[t] = aligned_alloc(CACHE_LINE, numBuckets * sizeof(int));
         threadStartingPoint[t] = aligned_alloc(CACHE_LINE, numBuckets * sizeof(long));
-#else
-        threadBucketSize[t] = malloc(numBuckets * sizeof(int));
-        threadStartingPoint[t] = malloc(numBuckets * sizeof(long));
-#endif
     }
 
     for (int bitrange = 0; bitrange < 64; bitrange += b)
@@ -171,7 +161,7 @@ int main(int argc, char* argv[])
     }
 
     printf("Run sort by radix sort (n: %lu, b: %d)\n", n, b);
-#ifdef A_TEST_3
+#ifdef A_TEST
     unsigned long* numbersToSort = aligned_alloc(CACHE_LINE, n * sizeof(unsigned long));
     unsigned long* numbersToSwap = aligned_alloc(CACHE_LINE, n * sizeof(unsigned long));
 #else
